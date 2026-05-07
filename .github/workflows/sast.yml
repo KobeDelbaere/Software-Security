@@ -1,22 +1,26 @@
-name: SAST Test Workflow
+name: CodeQL SAST Test Fixed
 
-# Draait bij push en elke 5 minuten (voor snelle testing)
 on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '*/5 * * * *'  # elke 5 minuten
+    - cron: '*/5 * * * *'  # snelle test
 
 jobs:
   codeql:
-    name: CodeQL SAST Test
+    name: CodeQL SAST
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_RUNNER_DEBUG: true
-      ACTIONS_STEP_DEBUG: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -25,7 +29,7 @@ jobs:
           queries: security-extended
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        run: echo "CodeQL autobuild step skipped for Node.js project"  # Node.js projecten hebben vaak geen speciale build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
