@@ -1,17 +1,19 @@
-name: SAST
+name: SAST Test Workflow
 
+# Draait bij push en elke 5 minuten (voor snelle testing)
 on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * *'  # dagelijks om middernacht
-  pull_request:
-    branches: [ main ]
+    - cron: '*/5 * * * *'  # elke 5 minuten
 
 jobs:
   codeql:
-    name: CodeQL SAST
+    name: CodeQL SAST Test
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_RUNNER_DEBUG: true
+      ACTIONS_STEP_DEBUG: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -19,8 +21,8 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: javascript  # Juice-Shop is een Node.js project
-          queries: security-extended  # Voer beveiligingsqueries uit
+          languages: javascript
+          queries: security-extended
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
