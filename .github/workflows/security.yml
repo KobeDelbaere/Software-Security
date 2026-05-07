@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * *'  # dagelijkse scan
+    - cron: '*/5 * * * *'  # snelle test
   pull_request:
     branches: [ main ]
 
@@ -23,13 +23,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # jouw project Node versie
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
           queries: security-extended
@@ -38,9 +38,9 @@ jobs:
         run: echo "Node.js project – autobuild step skipped"
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
-          category: '/language:javascript'
+          category: "/language:javascript"
 
   dependency-review:
     name: Dependency Review (SCA)
