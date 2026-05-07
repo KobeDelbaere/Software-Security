@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '* 5 * * * *'  # elke 5 minuten
+    - cron: '52 * * * *'  # elke 5 minuten
 
 jobs:
   codeql:
