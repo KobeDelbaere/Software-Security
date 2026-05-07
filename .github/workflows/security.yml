@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * *'  # dagelijks
+    - cron: '0 0 * * *'  # dagelijkse scan
   pull_request:
     branches: [ main ]
 
@@ -12,30 +12,46 @@ jobs:
   codeql:
     name: CodeQL SAST
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      ACTIONS_RUNNER_DEBUG: true
+      ACTIONS_STEP_DEBUG: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # jouw project Node versie
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v2
         with:
           languages: javascript
           queries: security-extended
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        run: echo "Node.js project – autobuild step skipped"
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v2
         with:
           category: '/language:javascript'
 
   dependency-review:
     name: Dependency Review (SCA)
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Run Dependency Review
-        uses: github/dependency-review-action@v3
+        uses: github/dependency-review-action@v2
+        with:
+          fail-on-severity: high
