@@ -1,74 +1,37 @@
-name: Security Checks
+name: SCA - Trivy Dependency Scan
 
 on:
   push:
-    branches: [ main ]
-  schedule:
-    - cron: '*/5 * * * *'  # snelle test
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+  schedule:
+    - cron: '38 5 * * 0'
 
 jobs:
-  codeql:
-    name: CodeQL SAST
+  trivy-scan:
+    name: SCA Dependency Scan
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        language: [javascript, python, go]  # voeg hier talen toe die je wilt scannen
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      ACTIONS_RUNNER_DEBUG: true
-      ACTIONS_STEP_DEBUG: true
+    permissions:
+      contents: read
+      security-events: write
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        if: matrix.language == 'javascript'
-        uses: actions/setup-node@v3
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          node-version: '18'
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'MEDIUM,HIGH,CRITICAL'
+          exit-code: '1'          # blocks pipeline on findings
 
-      - name: Setup Python
-        if: matrix.language == 'python'
-        uses: actions/setup-python@v4
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
         with:
-          python-version: '3.x'
-
-      - name: Setup Go
-        if: matrix.language == 'go'
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-
-      - name: Install dependencies (JS)
-        if: matrix.language == 'javascript'
-        run: npm ci
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-          queries: security-extended
-
-      - name: Autobuild
-        run: echo "Autobuild skipped for language ${{ matrix.language }}"
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{ matrix.language }}"
-
-  dependency-review:
-    name: Dependency Review (SCA)
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Run Dependency Review
-        uses: github/dependency-review-action@v3
-        with:
-          fail-on-severity: high
+          sarif_file: 'trivy-results.sarif'
