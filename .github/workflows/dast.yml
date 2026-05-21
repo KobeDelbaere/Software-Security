@@ -37,3 +37,10 @@ jobs:
         with:
           name: zap-report
           path: zap_report.html
+
+      - name: Install dependencies
+        working-directory: ./frontend  # <-- point to the folder with package.json
+        run: |
+          npm install
+          npm start &
+          sleep 10
