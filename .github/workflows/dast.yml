@@ -24,18 +24,17 @@ jobs:
         run: |
           npm install
           npm start &
-          # Wait for server to be up
-          sleep 10
+          sleep 10  # Wait for server to start
 
-      - name: Run OWASP ZAP DAST Scan
-        uses: zaproxy/action-full-scan@v1
+      - name: Run OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v2  # Updated to v2
         with:
           target: 'http://localhost:3000'
           rules_file_name: 'owasp-zap-rules.yml'
           fail_build_on_risk: 'true'
 
       - name: Upload ZAP Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # Updated to v4
         with:
           name: zap-report
           path: zap_report.html
